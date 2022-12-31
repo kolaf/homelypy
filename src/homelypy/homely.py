@@ -7,7 +7,7 @@ from typing import Callable, Dict, List
 import requests
 import websocket
 
-from homelypy.devices import Location, SingleLocation, Device, create_device_from_rest_response
+from homelypy.devices import Location, SingleLocation,  create_device_from_rest_response
 
 WEB_SOCKET_URL = "ws://sdk.iotiliti.cloud"
 
@@ -103,6 +103,7 @@ class Homely:
         data = response.json()
         devices = []
         for device in data["devices"]:
+            pprint(device)
             devices.append(create_device_from_rest_response(device))
         return SingleLocation(
             data["locationId"],
