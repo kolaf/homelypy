@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "homelypy"
+version = "0.0.1"
+authors = [
+  { name="Frank Olaf Sem-Jacobsen", email="frankose@ifi.uio.no" },
+]
+description = "A thin client wrapper for Homely API"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies=[
+    "websocket-client",
+    "python-dateutil"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/kolaf/homelypy"
+"Bug Tracker" = "https://github.com/kolaf/homelypy/issues"

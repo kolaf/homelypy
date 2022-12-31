@@ -1,11 +1,13 @@
+import dataclasses
 import logging
 import time
-from dataclasses import dataclass
-from typing import Callable
+from pprint import pprint
+from typing import Callable, Dict, List
 
-import rel as rel
-import requests as requests
+import requests
 import websocket
+
+from homelypy.devices import Location, SingleLocation, Device, create_device_from_rest_response
 
 WEB_SOCKET_URL = "ws://sdk.iotiliti.cloud"
 
@@ -22,44 +24,6 @@ class ConnectionFailedException(Exception):
     pass
 
 
-@dataclass
-class Location:
-    name: str
-    role: str
-    user_id: str
-    location_id: str
-    gateway_serial: str
-
-    def __str__(self):
-        return self.name
-
-
-@dataclass
-class Device:
-    id: str
-    name: str
-    serial_number: str
-    location: str
-    online: bool
-    model_id: str
-    model_name: str
-    features: list[dict]
-
-    def __str__(self):
-        return self.name
-
-
-@dataclass
-class SingleLocation:
-    location_id: str
-    gateway_serial: str
-    name: str
-    alarm_state: str
-    user_role_at_location: str
-    devices: list[Device]
-
-    def __str__(self):
-        return f"{self.name} with {len(self.devices)} devices"
 
 
 class Homely:
@@ -86,7 +50,7 @@ class Homely:
         data = response.json()
         self.store_authentication_information(data)
 
-    def store_authentication_information(self, data: dict):
+    def store_authentication_information(self, data: Dict):
         self.access_token = data["access_token"]
         self.authentication_time = time.time()
         self.expires_in = data["expires_in"]
@@ -110,11 +74,11 @@ class Homely:
             self.reauthenticate()
 
     @property
-    def authorisation_header(self) -> dict:
+    def authorisation_header(self) -> Dict:
         self.authenticate_if_required()
         return {"Authorization": f"Bearer {self.access_token}"}
 
-    def get_locations(self) -> list[Location]:
+    def get_locations(self) -> List[Location]:
         response = requests.get(self.url(LOCATIONS_ENDPOINT), headers=self.authorisation_header)
         if response.status_code != 200:
             raise ConnectionFailedException(response.text)
@@ -139,18 +103,7 @@ class Homely:
         data = response.json()
         devices = []
         for device in data["devices"]:
-            devices.append(
-                Device(
-                    device["id"],
-                    device["name"],
-                    device["serialNumber"],
-                    device["location"],
-                    device["online"],
-                    device["modelId"],
-                    device["modelName"],
-                    device["features"],
-                )
-            )
+            devices.append(create_device_from_rest_response(device))
         return SingleLocation(
             data["locationId"],
             data["gatewayserial"],
@@ -189,6 +142,7 @@ def on_open(ws):
 
 
 if __name__ == "__main__":
+    import rel
     logging.basicConfig(level=logging.DEBUG)
     homely = Homely("***", "***")
     locations = homely.get_locations()
@@ -197,7 +151,11 @@ if __name__ == "__main__":
     location = homely.get_location(locations[0].location_id)
     logger.debug(f"Received single location '{location}'")
     for device in location.devices:
-        logger.debug(f"Device: {device} has features {device.features}")
+        logger.debug(f"Device: {device} is of type {device.__class__}")
+        print("--------------------------")
+        pprint(dataclasses.asdict(device))
+
+
     ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
     ws.run_forever(
         dispatcher=rel, reconnect=5
