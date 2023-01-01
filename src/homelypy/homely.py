@@ -62,7 +62,7 @@ class Homely:
 
     def reauthenticate(self):
         response = requests.post(
-            self.url(AUTHENTICATION_ENDPOINT),
+            self.url(REFRESH_TOKEN_ENDPOINT),
             data={"refresh_token": self.refresh_token},
         )
         if response.status_code != 200:
