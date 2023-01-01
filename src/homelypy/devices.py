@@ -173,6 +173,9 @@ class Device:
             **state_fields,
         )
 
+    def get_entities(self) -> list[State]:
+        return [getattr(self, field.name) for field in dataclasses.fields(self) if issubclass(field.type, State)]
+
 
 @dataclass
 class WindowSensor(Device):
