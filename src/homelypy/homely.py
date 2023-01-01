@@ -66,6 +66,8 @@ class Homely:
             data={"refresh_token": self.refresh_token},
         )
         if response.status_code != 201:
+            self.refresh_expires_in = -1
+            self.expires_in = -1
             raise ConnectionFailedException(response.text)
         data = response.json()
         self.store_authentication_information(data)
