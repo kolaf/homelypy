@@ -1,7 +1,6 @@
 import dataclasses
 import logging
 import time
-from pprint import pprint
 from typing import Callable, Dict, List
 
 import requests
@@ -103,7 +102,6 @@ class Homely:
         data = response.json()
         devices = []
         for device in data["devices"]:
-            pprint(device)
             devices.append(create_device_from_rest_response(device))
         return SingleLocation(
             data["locationId"],
@@ -153,8 +151,6 @@ if __name__ == "__main__":
     logger.debug(f"Received single location '{location}'")
     for device in location.devices:
         logger.debug(f"Device: {device} is of type {device.__class__}")
-        print("--------------------------")
-        pprint(dataclasses.asdict(device))
 
 
     ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
