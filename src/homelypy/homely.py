@@ -6,7 +6,7 @@ from typing import Callable, Dict, List
 import requests
 import websocket
 
-from homelypy.devices import Location, SingleLocation,  create_device_from_rest_response
+from homelypy.devices import Location, SingleLocation, create_device_from_rest_response
 
 WEB_SOCKET_URL = "ws://sdk.iotiliti.cloud"
 
@@ -23,6 +23,8 @@ class ConnectionFailedException(Exception):
     pass
 
 
+class AuthenticationFailedException(Exception):
+    pass
 
 
 class Homely:
@@ -44,6 +46,9 @@ class Homely:
             self.url(AUTHENTICATION_ENDPOINT),
             data={"username": self.username, "password": self.password},
         )
+        print(response.status_code)
+        if response.status_code == 401:
+            raise AuthenticationFailedException(response.text)
         if response.status_code != 201:
             raise ConnectionFailedException(response.text)
         data = response.json()
@@ -142,6 +147,7 @@ def on_open(ws):
 
 if __name__ == "__main__":
     import rel
+
     logging.basicConfig(level=logging.DEBUG)
     homely = Homely("***", "***")
     locations = homely.get_locations()
@@ -151,7 +157,6 @@ if __name__ == "__main__":
     logger.debug(f"Received single location '{location}'")
     for device in location.devices:
         logger.debug(f"Device: {device} is of type {device.__class__}")
-
 
     ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
     ws.run_forever(
