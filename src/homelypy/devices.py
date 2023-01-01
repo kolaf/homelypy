@@ -99,9 +99,9 @@ class BatteryState(State):
         my_data = data["features"]["battery"]["states"]
         return BatteryState(
             "battery",
-            *extract_value_and_last_updated(my_data["defect"]) if "defect" in my_data else (None, None),
             *extract_value_and_last_updated(my_data["low"]),
             *extract_value_and_last_updated(my_data["voltage"]),
+            *extract_value_and_last_updated(my_data["defect"]) if "defect" in my_data else (None, None),
         )
 
     low: bool
