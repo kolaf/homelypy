@@ -46,7 +46,6 @@ class Homely:
             self.url(AUTHENTICATION_ENDPOINT),
             data={"username": self.username, "password": self.password},
         )
-        print(response.status_code)
         if response.status_code == 401:
             raise AuthenticationFailedException(response.text)
         if response.status_code != 201:
