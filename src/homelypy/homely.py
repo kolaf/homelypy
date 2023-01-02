@@ -1,5 +1,6 @@
 import argparse
 import dataclasses
+import json
 import logging
 import time
 from getpass import getpass
@@ -110,9 +111,8 @@ class Homely:
             raise ConnectionFailedException(response.text)
         return response.json()
 
-
     def get_location(self, location_id) -> SingleLocation:
-        data=self.get_location_json(location_id)
+        data = self.get_location_json(location_id)
         devices = []
         for device in data["devices"]:
             devices.append(create_device_from_rest_response(device))
@@ -155,12 +155,10 @@ def on_open(ws):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    parser = argparse.ArgumentParser(
-        prog='Homelypy',
-        description='Query the Homely rest API')
+    parser = argparse.ArgumentParser(prog="Homelypy", description="Query the Homely rest API")
     parser.add_argument("username", help="Same username as in the Homely app")
-    args=parser.parse_args()
-    password=getpass()
+    args = parser.parse_args()
+    password = getpass()
 
     homely = Homely(args.username, password)
     locations = homely.get_locations()
@@ -168,14 +166,20 @@ if __name__ == "__main__":
         print(f"Received location '{location}'")
     for location in locations:
         print(f"Full dump for location {location}")
-        pprint(homely.get_location_json(location.location_id))
+        location_dictionary = homely.get_location_json(location.location_id)
+        pprint(location_dictionary)
         print("----------------------------------")
+        with open(f"location_{location.name}.json", "w") as o:
+            json.dump(location_dictionary, o)
     # location = homely.get_location(locations[0].location_id)
     # logger.debug(f"Received single location '{location}'")
     # for device in location.devices:
     #     logger.debug(f"Device: {device} is of type {device.__class__}")
     #
+    # location = homely.get_location(locations[0].location_id)
     # ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
+    # import rel
+    #
     # ws.run_forever(
     #     dispatcher=rel, reconnect=5
     # )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
