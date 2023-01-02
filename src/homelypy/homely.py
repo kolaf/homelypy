@@ -1,6 +1,9 @@
+import argparse
 import dataclasses
 import logging
 import time
+from getpass import getpass
+from pprint import pprint
 from typing import Callable, Dict, List
 
 import requests
@@ -98,14 +101,18 @@ class Homely:
             for location_data in response.json()
         ]
 
-    def get_location(self, location_id) -> SingleLocation:
+    def get_location_json(self, location_id) -> dict:
         response = requests.get(
             self.url(SINGLE_LOCATION_ENDPOINT) + f"/{location_id}",
             headers=self.authorisation_header,
         )
         if response.status_code != 200:
             raise ConnectionFailedException(response.text)
-        data = response.json()
+        return response.json()
+
+
+    def get_location(self, location_id) -> SingleLocation:
+        data=self.get_location_json(location_id)
         devices = []
         for device in data["devices"]:
             devices.append(create_device_from_rest_response(device))
@@ -147,21 +154,30 @@ def on_open(ws):
 
 
 if __name__ == "__main__":
-    import rel
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(
+        prog='Homelypy',
+        description='Query the Homely rest API')
+    parser.add_argument("username", help="Same username as in the Homely app")
+    args=parser.parse_args()
+    password=getpass()
 
-    logging.basicConfig(level=logging.DEBUG)
-    homely = Homely("***", "***")
+    homely = Homely(args.username, password)
     locations = homely.get_locations()
     for location in locations:
-        logger.debug(f"Received location '{location}'")
-    location = homely.get_location(locations[0].location_id)
-    logger.debug(f"Received single location '{location}'")
-    for device in location.devices:
-        logger.debug(f"Device: {device} is of type {device.__class__}")
-
-    ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
-    ws.run_forever(
-        dispatcher=rel, reconnect=5
-    )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
-    rel.signal(2, rel.abort)  # Keyboard Interrupt
-    rel.dispatch()
+        print(f"Received location '{location}'")
+    for location in locations:
+        print(f"Full dump for location {location}")
+        pprint(homely.get_location_json(location.location_id))
+        print("----------------------------------")
+    # location = homely.get_location(locations[0].location_id)
+    # logger.debug(f"Received single location '{location}'")
+    # for device in location.devices:
+    #     logger.debug(f"Device: {device} is of type {device.__class__}")
+    #
+    # ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
+    # ws.run_forever(
+    #     dispatcher=rel, reconnect=5
+    # )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
+    # rel.signal(2, rel.abort)  # Keyboard Interrupt
+    # rel.dispatch()
