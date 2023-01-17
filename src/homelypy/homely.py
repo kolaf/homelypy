@@ -10,7 +10,7 @@ from typing import Callable, Dict, List
 import requests
 import websocket
 
-from homelypy.devices import Location, SingleLocation, create_device_from_rest_response
+from homelypy.devices import Location, SingleLocation, create_device_from_rest_response, UnknownDeviceException
 
 WEB_SOCKET_URL = "ws://sdk.iotiliti.cloud"
 
@@ -115,7 +115,10 @@ class Homely:
         data = self.get_location_json(location_id)
         devices = []
         for device in data["devices"]:
-            devices.append(create_device_from_rest_response(device))
+            try:
+                devices.append(create_device_from_rest_response(device))
+            except UnknownDeviceException as ex:
+                logger.error(str(ex))
         return SingleLocation(
             data["locationId"],
             data["gatewayserial"],

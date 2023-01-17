@@ -3,10 +3,46 @@ from unittest import TestCase
 
 from dateutil.tz import tzutc
 
-from homelypy.devices import create_device_from_rest_response, WindowSensor, SmokeAlarm, MotionSensorMini
+from homelypy.devices import create_device_from_rest_response, WindowSensor, SmokeAlarm, MotionSensorMini, \
+    UnknownDeviceException
 
 
 class TestDeviceCreation(TestCase):
+
+    def test_unknown_sensor(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "alarm": {"lastUpdated": "2022-12-31T16:34:31.189Z", "value": False},
+                        "tamper": {"lastUpdated": "2022-06-10T15:43:20.402Z", "value": False},
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "defect": {"lastUpdated": None, "value": None},
+                        "low": {"lastUpdated": "2022-06-10T15:29:20.956Z", "value": False},
+                        "voltage": {"lastUpdated": "2022-12-09T12:33:11.390Z", "value": 2.9},
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkaddress": {"lastUpdated": "2022-11-19T22:00:31.223Z", "value": "0015BC0041001B88"},
+                        "networklinkstrength": {"lastUpdated": "2022-12-31T16:07:13.769Z", "value": 92},
+                    }
+                },
+                "temperature": {"states": {"temperature": {"lastUpdated": "2022-12-31T16:26:12.692Z", "value": 16}}},
+            },
+            "id": "f6210e83-a41c-49c6-a24a-57733ba8ea44",
+            "location": "Floor 0 - Entrance",
+            "modelId": "87fa1ae0-824f-4d42-be7a-cc5b6c7b1e35",
+            "modelName": "Bogus model",
+            "name": "Window Sensor",
+            "online": True,
+            "serialNumber": "0015BC001E014469",
+        }
+        with self.assertRaises(UnknownDeviceException):
+            device: WindowSensor = create_device_from_rest_response(rest_response)
     def test_create_window_sensor(self):
         rest_response = {
             "features": {

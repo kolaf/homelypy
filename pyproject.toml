@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "homelypy"
-version = "0.0.10"
+version = "0.0.11m"
 authors = [
   { name="Frank Olaf Sem-Jacobsen", email="frankose@ifi.uio.no" },
 ]

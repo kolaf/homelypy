@@ -106,15 +106,21 @@ class EMIHANPowersSensor(Device):
 DEVICE_MAP = {
     "Motion Sensor Mini": MotionSensorMini,
     "Smoke Alarm": SmokeAlarm,
+    "Intelligent Smoke Alarm": SmokeAlarm,
     "Window Sensor": WindowSensor,
+    "Window Alarm Sensor": WindowSensor,
     "EMI Norwegian HAN": EMIHANPowersSensor,
 }
+
+
+class UnknownDeviceException(Exception):
+    pass
 
 
 def create_device_from_rest_response(data: dict) -> Optional[Device]:
     device_class = DEVICE_MAP.get(data.get("modelName"))
     if device_class is None:
-        return
+        raise UnknownDeviceException(f"Unknown device: '{data.get('modelName')}'")
     return device_class.create_from_rest_response(data)
 
 
