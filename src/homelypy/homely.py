@@ -1,18 +1,25 @@
-import argparse
-import dataclasses
-import json
 import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(threadName)-15s %(name)-15s: %(levelname)-8s %(message)s",
+    datefmt="%d/%m/%Y %H:%M:%S",
+)
+import argparse
+import json
 import time
 from getpass import getpass
 from pprint import pprint
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Tuple, Any, Optional
 
 import requests
+import socketio
 import websocket
 
-from homelypy.devices import Location, SingleLocation, create_device_from_rest_response, UnknownDeviceException
+from homelypy.devices import Location, SingleLocation, create_device_from_rest_response, UnknownDeviceException, Device
+from homelypy.states import State
 
-WEB_SOCKET_URL = "ws://sdk.iotiliti.cloud"
+WEB_SOCKET_URL = "wss://sdk.iotiliti.cloud"
 
 SDK_URL = "https://sdk.iotiliti.cloud"
 AUTHENTICATION_ENDPOINT = "/homely/oauth/token"
@@ -32,7 +39,12 @@ class AuthenticationFailedException(Exception):
 
 
 class Homely:
+    single_location: SingleLocation
+    state_change_callback: Callable[[Device, List[State]], Any]
+    sio: socketio.Client
+
     def __init__(self, username: str, password: str):
+        super().__init__()
         self.refresh_expires_in = 0
         self.expires_in = 0
         self.authentication_time = 0
@@ -40,6 +52,41 @@ class Homely:
         self.refresh_token = None
         self.username = username
         self.password = password
+
+    def _register_callbacks(self):
+        @self.sio.event
+        def connect():
+            logger.info("websocket: connected to server")
+
+        @self.sio.event
+        def disconnect():
+            logger.info("websocket: disconnected from server")
+
+        @self.sio.on("event")
+        def on_message(data):
+            # {
+            #     "type": "device-state-changed",
+            #     "data": {
+            #         "deviceId": "ad5d19b5-3988-4ad2-96c0-08f6283e073a",
+            #         "gatewayId": "3b0187f4-878e-4b51-af2b-fc563b81f137",
+            #         "locationId": "48617520-863c-4e27-9a05-4ce3cce50f8e",
+            #         "modelId": "87fa1ae0-824f-4d42-be7a-cc5b6c7b1e35",
+            #         "rootLocationId": "d14a27d8-311c-41d8-b8c1-08b757c2253f",
+            #         "changes": [
+            #             {
+            #                 "feature": "temperature",
+            #                 "stateName": "temperature",
+            #                 "value": 4.8,
+            #                 "lastUpdated": "2023-01-25T10:27:07.786Z",
+            #             }
+            #         ],
+            #     },
+            # }
+            if data["type"] == "device-state-changed":
+                if self.single_location:
+                    device, states = self.single_location.update_device_state_from_stream(data["data"])
+                    if self.state_change_callback:
+                        self.state_change_callback(device, states)
 
     @staticmethod
     def url(endpoint: str) -> str:
@@ -128,63 +175,54 @@ class Homely:
             devices,
         )
 
-    def get_web_socket(self, location_id: str, on_message: Callable) -> websocket.WebSocketApp:
+    def run_socket_io(
+        self,
+        single_location: SingleLocation,
+        state_change_callback: Optional[Callable[[Device, List[State]], Any]] = None,
+    ):
+        self.state_change_callback = state_change_callback
+        self.single_location = single_location
         self.authenticate_if_required()
         websocket.enableTrace(True)
-        url = f"{WEB_SOCKET_URL}?locationId={location_id}"
+        url = f"{WEB_SOCKET_URL}?locationId={single_location.location_id}&token=Bearer%20{self.access_token}"
+        header = {**self.authorisation_header, "locationId": single_location.location_id}
         logger.debug(f"Connecting to web socket {url}")
-        ws = websocket.WebSocketApp(
-            url,
-            header={**self.authorisation_header, "locationId": location_id},
-            on_open=on_open,
-            on_message=on_message,
-            on_error=on_error,
-            on_close=on_close,
-        )
-        return ws
+        self.sio = socketio.Client(logger=logger, engineio_logger=False)
+        self._register_callbacks()
+        logging.getLogger("socketio").setLevel(logging.WARNING)
+        logging.getLogger("websocket").setLevel(logging.WARNING)
+        logging.getLogger("engineio").setLevel(logging.WARNING)
+        self.sio.connect(url, headers=header)
+        self.sio.wait()
 
 
-def on_error(ws, error):
-    logger.debug(f"Websocket error: {error}")
-
-
-def on_close(ws, close_status_code, close_msg):
-    logger.debug(f"Websocket closed")
-
-
-def on_open(ws):
-    logger.debug(f"Websocket connected")
+def test_callback(device: Device, states: List[State]):
+    logger.info(f"Received update for device '{device}'")
+    for state in states:
+        logger.info(f"\t{state.feature_name} change to {state}")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser(prog="Homelypy", description="Query the Homely rest API")
     parser.add_argument("username", help="Same username as in the Homely app")
+    parser.add_argument("-s", "--stream", action="store_true", help="Initiate websocket stream")
     args = parser.parse_args()
     password = getpass()
 
     homely = Homely(args.username, password)
     locations = homely.get_locations()
     for location in locations:
-        print(f"Received location '{location}'")
+        logger.info(f"Received location '{location}'")
     for location in locations:
-        print(f"Full dump for location {location}")
+        filename = f"location_{location.name}.json"
         location_dictionary = homely.get_location_json(location.location_id)
-        pprint(location_dictionary)
-        print("----------------------------------")
-        with open(f"location_{location.name}.json", "w") as o:
+        # pprint(location_dictionary)
+        # logger.info("----------------------------------")
+        with open(filename, "w") as o:
             json.dump(location_dictionary, o)
-    # location = homely.get_location(locations[0].location_id)
-    # logger.debug(f"Received single location '{location}'")
-    # for device in location.devices:
-    #     logger.debug(f"Device: {device} is of type {device.__class__}")
-    #
-    # location = homely.get_location(locations[0].location_id)
-    # ws = homely.get_web_socket(location.location_id, lambda data: logger.debug(f"Received data: {data}"))
-    # import rel
-    #
-    # ws.run_forever(
-    #     dispatcher=rel, reconnect=5
-    # )  # Set dispatcher to automatic reconnection, 5 second reconnect delay if connection closed unexpectedly
-    # rel.signal(2, rel.abort)  # Keyboard Interrupt
-    # rel.dispatch()
+        logger.info(f"Full dump for location {location} written to {filename}")
+
+    location = homely.get_location(locations[0].location_id)
+    if args.stream:
+        homely.run_socket_io(location, test_callback)

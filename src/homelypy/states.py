@@ -36,6 +36,9 @@ class BasicAlarmState(State):
     tamper: bool
     tamper_last_updated: datetime.datetime
 
+    def __str__(self):
+        return f"Alarm: {self.alarm} at {self.alarm_last_updated}, Tamper: {self.tamper} at {self.tamper_last_updated}"
+
 
 @dataclass
 class SmokeAlarmState(State):
@@ -49,6 +52,9 @@ class SmokeAlarmState(State):
 
     fire: bool
     fire_last_updated: datetime.datetime
+
+    def __str__(self):
+        return f"Fire: {self.fire} at {self.fire_last_updated}"
 
 
 @dataclass
@@ -64,6 +70,12 @@ class MotionSensorState(BasicAlarmState):
             *extract_value_and_last_updated(my_data["alarm"]),
             *extract_value_and_last_updated(my_data["tamper"]),
             *extract_value_and_last_updated(my_data["sensitivitylevel"]),
+        )
+
+    def __str__(self):
+        return (
+            super().__str__()
+            + f", Sensitivity level: {self.sensitivity_level} at {self.sensitivity_level_last_updated}"
         )
 
 
@@ -86,6 +98,12 @@ class BatteryState(State):
     defect: Optional[Any]
     defect_last_updated: datetime.datetime
 
+    def __str__(self):
+        return (
+            f"Low: {self.low} at {self.low_last_updated}, Voltage: {self.voltage} at {self.voltage_last_updated}, "
+            f"Defect: {self.defect} at {self.defect_last_updated}"
+        )
+
 
 @dataclass
 class TemperatureState(State):
@@ -99,6 +117,9 @@ class TemperatureState(State):
 
     temperature: float
     temperature_last_updated: datetime.datetime
+
+    def __str__(self):
+        return f"Temperature: {self.temperature} at {self.temperature_last_updated}"
 
 
 @dataclass
@@ -123,6 +144,14 @@ class MeteringState(State):
     check: bool
     check_last_updated: datetime.datetime
 
+    def __str__(self):
+        return (
+            f"Summation delivered: {self.summation_delivered} at {self.summation_delivered_last_updated}, "
+            f"Summation received: {self.summation_received} at {self.summation_received_last_update}, "
+            f"Demand: {self.demand} at {self.demand_last_updated}, "
+            f"Check: {self.check} at {self.check_last_updated}"
+        )
+
 
 @dataclass
 class DiagnosticState(State):
@@ -139,3 +168,9 @@ class DiagnosticState(State):
     network_link_address_last_updated: datetime.datetime
     network_link_strength: float
     network_link_strength_last_updated: datetime.datetime
+
+    def __str__(self):
+        return (
+            f"Network link address: {self.network_link_address} at {self.network_link_address_last_updated}, "
+            f"Network link strength: {self.network_link_strength} at {self.network_link_strength_last_updated}"
+        )
