@@ -133,6 +133,14 @@ class MotionSensorMini(Device):
 
 
 @dataclass
+class MotionSensor2(Device):
+    battery: BatteryState
+    diagnostic: DiagnosticState
+    temperature: TemperatureState
+    alarm: MotionSensorState
+
+
+@dataclass
 class EMIHANPowersSensor(Device):
     diagnostic: DiagnosticState
     metering: MeteringState
@@ -140,6 +148,7 @@ class EMIHANPowersSensor(Device):
 
 DEVICE_MAP = {
     "Motion Sensor Mini": MotionSensorMini,
+    "Motion Sensor 2 Alarm": MotionSensor2,
     "Smoke Alarm": SmokeAlarm,
     "Intelligent Smoke Alarm": SmokeAlarm,
     "Window Sensor": WindowSensor,
