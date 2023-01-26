@@ -1,3 +1,3 @@
-rel
-websocket-client
-python-dateutil
+python-dateutil~=2.8.2
+requests
+python-socketio[client]<5.0

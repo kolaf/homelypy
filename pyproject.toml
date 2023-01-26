@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "homelypy"
-version = "0.0.11"
+version = "0.1.5"
 authors = [
   { name="Frank Olaf Sem-Jacobsen", email="frankose@ifi.uio.no" },
 ]
@@ -17,7 +17,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies=[
-    "websocket-client",
+    "requests",
+    "python-socketio[client]<5.0",
     "python-dateutil"
 ]
 

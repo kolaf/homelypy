@@ -1,8 +1,11 @@
 import dataclasses
+import datetime
 import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, List, Tuple
+
+from dateutil.parser import parse
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +25,12 @@ class AlarmStates(Enum):
     DISARMED = "DISARMED"
     ARMED_AWAY = "ARMED_AWAY"
     ARMED_NIGHT = "ARMED_NIGHT"
-    ARMED_PARTLY = "ARMED_PARTLY"
+    ARMED_STAY = "ARMED_STAY"
     BREACHED = "BREACHED"
     ALARM_PENDING = "ALARM_PENDING"
-    ALARM_STAY_PENDING = "ALARM_STAY_PENDING"
-    ARMED_NIGHT_PENDING = "ARMED_NIGHT_PENDING"
-    ARMED_AWAY_PENDING = "ARMED_AWAY_PENDING"
+    ARM_STAY_PENDING = "ARM_STAY_PENDING"
+    ARM_NIGHT_PENDING = "ARM_NIGHT_PENDING"
+    ARM_PENDING = "ARM_PENDING"
 
 
 @dataclass
@@ -81,7 +84,7 @@ class Device:
             try:
                 state = getattr(self, change["feature"])
                 setattr(state, change["stateName"], change["value"])
-                setattr(state, f"{change['stateName']}_last_updated", change["lastUpdated"])
+                setattr(state, f"{change['stateName']}_last_updated", parse(change["lastUpdated"]))
                 updated_states.append(state)
             except AttributeError:
                 logger.exception(f"Device '{self}' does not have the feature {change['feature']}")
@@ -165,6 +168,7 @@ class SingleLocation:
     gateway_serial: str
     name: str
     alarm_state: AlarmStates
+    alarm_state_last_updated: datetime.datetime
     user_role_at_location: str
     devices: list[Device]
 

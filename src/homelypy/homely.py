@@ -1,4 +1,7 @@
+import datetime
 import logging
+
+from dateutil.parser import parse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -9,7 +12,6 @@ import argparse
 import json
 import time
 from getpass import getpass
-from pprint import pprint
 from typing import Callable, Dict, List, Tuple, Any, Optional
 
 import requests
@@ -40,7 +42,7 @@ class AuthenticationFailedException(Exception):
 
 class Homely:
     single_location: SingleLocation
-    state_change_callback: Callable[[Device, List[State]], Any]
+    state_change_callback: Callable[[SingleLocation, Device, List[State]], Any]
     sio: socketio.Client
 
     def __init__(self, username: str, password: str):
@@ -64,6 +66,7 @@ class Homely:
 
         @self.sio.on("event")
         def on_message(data):
+            # logger.info(data)
             # {
             #     "type": "device-state-changed",
             #     "data": {
@@ -86,7 +89,13 @@ class Homely:
                 if self.single_location:
                     device, states = self.single_location.update_device_state_from_stream(data["data"])
                     if self.state_change_callback:
-                        self.state_change_callback(device, states)
+                        self.state_change_callback(None, device, states)
+            elif data["type"] == "alarm-state-changed":
+                if self.single_location:
+                    self.single_location.alarm_state = data["data"]["state"]
+                    self.single_location.alarm_state_last_updated = parse(data["data"]["timestamp"])
+                    if self.state_change_callback:
+                        self.state_change_callback(self.single_location, None, [])
 
     @staticmethod
     def url(endpoint: str) -> str:
@@ -171,6 +180,7 @@ class Homely:
             data["gatewayserial"],
             data["name"],
             data["alarmState"],
+            datetime.datetime.now(datetime.timezone.utc),
             data["userRoleAtLocation"],
             devices,
         )
@@ -185,21 +195,32 @@ class Homely:
         self.authenticate_if_required()
         websocket.enableTrace(True)
         url = f"{WEB_SOCKET_URL}?locationId={single_location.location_id}&token=Bearer%20{self.access_token}"
-        header = {**self.authorisation_header, "locationId": single_location.location_id}
         logger.debug(f"Connecting to web socket {url}")
         self.sio = socketio.Client(logger=logger, engineio_logger=False)
         self._register_callbacks()
         logging.getLogger("socketio").setLevel(logging.WARNING)
         logging.getLogger("websocket").setLevel(logging.WARNING)
         logging.getLogger("engineio").setLevel(logging.WARNING)
-        self.sio.connect(url, headers=header)
-        self.sio.wait()
+        while True:
+            try:
+                header = {**self.authorisation_header, "locationId": single_location.location_id}
+                self.sio.connect(url, headers=header)
+                self.sio.wait()
+            except:
+                logger.exception("Exception while running socketio")
+            try:
+                self.sio.disconnect()
+            except Exception as ex:
+                logger.warning(f"Failed disconnecting after unexpected websocket termination: {ex}")
+            time.sleep(30)
 
-
-def test_callback(device: Device, states: List[State]):
-    logger.info(f"Received update for device '{device}'")
-    for state in states:
-        logger.info(f"\t{state.feature_name} change to {state}")
+def test_callback(single_location: Optional[SingleLocation], device: Optional[Device], states: List[State]):
+    if device is not None:
+        logger.info(f"Received update for device '{device}'")
+        for state in states:
+            logger.info(f"\t{state.feature_name} change to {state}")
+    if single_location is not None:
+        logger.info(f"Received alarm update: {single_location.alarm_state}")
 
 
 if __name__ == "__main__":
