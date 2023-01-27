@@ -4,7 +4,6 @@ import logging
 from dateutil.parser import parse
 
 logging.basicConfig(
-    level=logging.INFO,
     format="%(asctime)s %(threadName)-15s %(name)-15s: %(levelname)-8s %(message)s",
     datefmt="%d/%m/%Y %H:%M:%S",
 )
@@ -201,7 +200,7 @@ class Homely:
         websocket.enableTrace(True)
         url = f"{WEB_SOCKET_URL}?locationId={single_location.location_id}&token=Bearer%20{self.access_token}"
         logger.debug(f"Connecting to web socket {url}")
-        self.sio = socketio.Client(logger=logger, engineio_logger=False)
+        self.sio = socketio.Client(logger=logger, engineio_logger=False, reconnection=False)
         self._register_callbacks()
         logging.getLogger("socketio").setLevel(logger.level)
         logging.getLogger("websocket").setLevel(logger.level)
@@ -217,7 +216,8 @@ class Homely:
                 self.sio.disconnect()
             except Exception as ex:
                 logger.warning(f"Failed disconnecting after unexpected websocket termination: {ex}")
-            time.sleep(30)
+            logger.info("Socket terminating restarting in 5 seconds")
+            time.sleep(5)
 
 
 def test_callback(single_location: Optional[SingleLocation], device: Optional[Device], states: List[State]):
@@ -230,11 +230,14 @@ def test_callback(single_location: Optional[SingleLocation], device: Optional[De
 
 
 if __name__ == "__main__":
-
+    logger.setLevel(logging.INFO)
     parser = argparse.ArgumentParser(prog="Homelypy", description="Query the Homely rest API")
     parser.add_argument("username", help="Same username as in the Homely app")
     parser.add_argument("-s", "--stream", action="store_true", help="Initiate websocket stream")
+    parser.add_argument("-d", "--debug", action="store_true", help="Debug output")
     args = parser.parse_args()
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
     password = getpass()
 
     homely = Homely(args.username, password)
