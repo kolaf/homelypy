@@ -63,6 +63,8 @@ class Homely:
         @self.sio.event
         def disconnect():
             logger.info("websocket: disconnected from server")
+            # Disconnected, refresh login
+            self.sio.connection_headers = self.build_connection_header()
 
         @self.sio.on("event")
         def on_message(data):
@@ -185,6 +187,9 @@ class Homely:
             devices,
         )
 
+    def build_connection_header(self) -> dict:
+        return {**self.authorisation_header, "locationId": self.single_location.location_id}
+
     def run_socket_io(
         self,
         single_location: SingleLocation,
@@ -198,12 +203,12 @@ class Homely:
         logger.debug(f"Connecting to web socket {url}")
         self.sio = socketio.Client(logger=logger, engineio_logger=False)
         self._register_callbacks()
-        logging.getLogger("socketio").setLevel(logging.WARNING)
-        logging.getLogger("websocket").setLevel(logging.WARNING)
-        logging.getLogger("engineio").setLevel(logging.WARNING)
+        logging.getLogger("socketio").setLevel(logger.level)
+        logging.getLogger("websocket").setLevel(logger.level)
+        logging.getLogger("engineio").setLevel(logger.level)
         while True:
             try:
-                header = {**self.authorisation_header, "locationId": single_location.location_id}
+                header = self.build_connection_header()
                 self.sio.connect(url, headers=header)
                 self.sio.wait()
             except:
@@ -213,6 +218,7 @@ class Homely:
             except Exception as ex:
                 logger.warning(f"Failed disconnecting after unexpected websocket termination: {ex}")
             time.sleep(30)
+
 
 def test_callback(single_location: Optional[SingleLocation], device: Optional[Device], states: List[State]):
     if device is not None:
