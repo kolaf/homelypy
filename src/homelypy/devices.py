@@ -56,7 +56,7 @@ class Device:
     model_name: str
 
     def __str__(self):
-        return self.name
+        return f"{self.name} in {self.location}"
 
     def update_state(self, changes: List[dict]):
         """Updates the various features of the device based on the list of changes"""
