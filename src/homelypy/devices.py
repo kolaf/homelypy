@@ -128,6 +128,14 @@ class SmokeAlarm(Device):
 
 
 @dataclass
+class HeatAlarm(Device):
+    battery: BatteryState
+    diagnostic: DiagnosticState
+    temperature: TemperatureState
+    alarm: SmokeAlarmState
+
+
+@dataclass
 class MotionSensorMini(Device):
     battery: BatteryState
     diagnostic: DiagnosticState
@@ -143,8 +151,10 @@ class EMIHANPowersSensor(Device):
 
 DEVICE_MAP = {
     "Motion Sensor Mini": MotionSensorMini,
+    "Motion Sensor 2 Alarm": MotionSensorMini,
     "Smoke Alarm": SmokeAlarm,
     "Intelligent Smoke Alarm": SmokeAlarm,
+    "Heat Alarm": HeatAlarm,
     "Window Sensor": WindowSensor,
     "Window Alarm Sensor": WindowSensor,
     "EMI Norwegian HAN": EMIHANPowersSensor,
