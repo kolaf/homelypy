@@ -155,6 +155,7 @@ DEVICE_MAP = {
     "Smoke Alarm": SmokeAlarm,
     "Intelligent Smoke Alarm": SmokeAlarm,
     "Heat Alarm": HeatAlarm,
+    "Intelligent Heat Alarm": HeatAlarm,
     "Window Sensor": WindowSensor,
     "Window Alarm Sensor": WindowSensor,
     "EMI Norwegian HAN": EMIHANPowersSensor,
