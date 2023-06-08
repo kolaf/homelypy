@@ -154,7 +154,6 @@ class Homely:
                 location_data["role"],
                 location_data["userId"],
                 location_data["locationId"],
-                location_data["gatewayserial"],
             )
             for location_data in response.json()
         ]

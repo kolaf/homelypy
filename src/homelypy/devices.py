@@ -39,7 +39,7 @@ class Location:
     role: str
     user_id: str
     location_id: str
-    gateway_serial: str
+    gateway_serial: str = None
 
     def __str__(self):
         return self.name
