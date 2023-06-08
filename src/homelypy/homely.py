@@ -237,7 +237,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.debug:
         logger.setLevel(logging.DEBUG)
-    password = getpass()
+
+    password = os.environ.get("HOMELY_PASS")
+    if password is None:
+        password = getpass()
 
     homely = Homely(args.username, password)
     locations = homely.get_locations()
