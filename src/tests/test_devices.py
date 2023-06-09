@@ -43,6 +43,7 @@ class TestDeviceCreation(TestCase):
         }
         with self.assertRaises(UnknownDeviceException):
             device: WindowSensor = create_device_from_rest_response(rest_response)
+
     def test_create_window_sensor(self):
         rest_response = {
             "features": {
@@ -84,6 +85,73 @@ class TestDeviceCreation(TestCase):
             device.temperature.temperature_last_updated,
         )
 
+    def test_create_entry_sensor_2(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "alarm": {
+                            "value": False,
+                            "lastUpdated": "2023-06-06T17:44:38.401Z",
+                        },
+                        "tamper": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:41:31.157Z",
+                        },
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 26.4,
+                            "lastUpdated": "2023-06-09T18:22:11.817Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:41:31.082Z",
+                        },
+                        "defect": {"value": None, "lastUpdated": None},
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-06-09T14:42:13.160Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 75,
+                            "lastUpdated": "2023-06-09T17:54:51.847Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC0041003169",
+                            "lastUpdated": "2023-05-01T20:24:05.798Z",
+                        },
+                    }
+                },
+            },
+            "id": "3f37711f-cb83-4174-babe-7f492ee8de5a",
+            "name": "Alarm Entry Sensor 2",
+            "serialNumber": "0015BC004400810A",
+            "location": "Floor 2 - Loftgang",
+            "online": True,
+            "modelId": "9b765375-e3f4-4627-b73c-b4143ce86c2c",
+            "modelName": "Alarm Entry Sensor 2",
+        }
+
+        device: EntrySensor = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, EntrySensor))
+        self.assertEqual("Alarm Entry Sensor 2", device.name)
+        self.assertEqual(26.4, device.temperature.temperature)
+        self.assertEqual(
+            datetime.datetime(2023, 6, 9, 18, 22, 11, 817000, tzinfo=tzutc()),
+            device.temperature.temperature_last_updated,
+        )
+
     def test_create_smoke_alarm(self):
         rest_response = {
             "features": {
@@ -112,6 +180,62 @@ class TestDeviceCreation(TestCase):
         }
         device: SmokeAlarm = create_device_from_rest_response(rest_response)
         self.assertTrue(isinstance(device, SmokeAlarm))
+        self.assertFalse(device.alarm.fire)
+
+    def test_create_heat_alarm(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "fire": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:08:22.040Z",
+                        }
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 24.3,
+                            "lastUpdated": "2023-06-09T18:50:59.100Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:08:22.013Z",
+                        },
+                        "voltage": {
+                            "value": 2.9,
+                            "lastUpdated": "2023-06-09T18:57:42.482Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 94,
+                            "lastUpdated": "2023-06-09T18:26:52.950Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC004100389B",
+                            "lastUpdated": "2023-05-17T16:06:11.590Z",
+                        },
+                    }
+                },
+            },
+            "id": "170b3a89-3c98-45f1-a2ef-08ee0e11251a",
+            "name": "Intelligent Heat Alarm",
+            "serialNumber": "0015BC00340018F6",
+            "location": "Floor 1 - Kitchen",
+            "online": True,
+            "modelId": "ad923ba3-2b72-45e0-a9d7-91808a76f2ed",
+            "modelName": "Intelligent Heat Alarm",
+        }
+        device: HeatAlarm = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, HeatAlarm))
         self.assertFalse(device.alarm.fire)
 
     def test_create_motion_sensor_mini(self):
@@ -150,3 +274,127 @@ class TestDeviceCreation(TestCase):
         device: MotionSensorMini = create_device_from_rest_response(rest_response)
         self.assertTrue(isinstance(device, MotionSensorMini))
         self.assertEqual(89, device.diagnostic.network_link_strength)
+
+    def test_create_motion_sensor_2(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "alarm": {
+                            "value": False,
+                            "lastUpdated": "2023-06-09T18:21:11.541Z",
+                        },
+                        "tamper": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.908Z",
+                        },
+                        "sensitivitylevel": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-01T17:00:41.742Z",
+                        },
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 26.3,
+                            "lastUpdated": "2023-06-09T18:23:07.538Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.839Z",
+                        },
+                        "defect": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.857Z",
+                        },
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-11T05:01:05.016Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 94,
+                            "lastUpdated": "2023-06-09T17:37:39.567Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC002C100EBD",
+                            "lastUpdated": "2023-05-01T17:00:40.479Z",
+                        },
+                    }
+                },
+            },
+            "id": "51ecf8af-fc27-4d95-af14-295355e5f33d",
+            "name": "Alarm Motion Sensor 2",
+            "serialNumber": "0015BC001A1064CE",
+            "location": "Floor 1 - Living room",
+            "online": True,
+            "modelId": "17ddbcb4-8c00-4bc3-b06f-d20f51c0fe52",
+            "modelName": "Alarm Motion Sensor 2",
+        }
+        device: MotionSensor2 = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, MotionSensor2))
+        self.assertEqual(94, device.diagnostic.network_link_strength)
+
+    def test_create_water_leak_sensor(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "flood": {
+                            "value": False,
+                            "lastUpdated": "2023-05-17T09:20:46.868Z",
+                        }
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 21.9,
+                            "lastUpdated": "2023-06-08T15:58:39.078Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-17T09:20:46.850Z",
+                        },
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-17T10:36:16.891Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 92,
+                            "lastUpdated": "2023-06-08T16:08:58.577Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC004100389B",
+                            "lastUpdated": "2023-06-03T07:26:15.037Z",
+                        },
+                    }
+                },
+            },
+            "id": "1a03becf-be4d-4189-ac5f-eedff786e76a",
+            "name": "Water Leak Detector",
+            "serialNumber": "0015BC00330053A3",
+            "location": "Floor 1 - Kitchen",
+            "online": True,
+            "modelId": "22f7b47e-c40a-4943-b44a-c70f7ce820ff",
+            "modelName": "Water Leak Detector",
+        }
+        device: WaterLeakDetector = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, WaterLeakDetector))
+        self.assertEqual(92, device.diagnostic.network_link_strength)

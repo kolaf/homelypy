@@ -6,7 +6,7 @@ This can be used to easily extract a data dump from the API. Simply clone the re
 ```shell
 python3 -m homelypy.homely <username>
 ```
-You will be prompted for a password, then it will dump all the locations and associated sensors in the system. It is gathered inappropriate location_<location_name>.json for convenience.
+The script will look for password in the `HOMELY_PASS` environment variable. If not set, you will be prompted for a password. Then it will dump all the locations and associated sensors in the system. It is gathered inappropriate location_<location_name>.json for convenience.
 
 # Building and packaging
 ```shell

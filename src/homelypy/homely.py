@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 
 from dateutil.parser import parse
 
@@ -154,7 +155,6 @@ class Homely:
                 location_data["role"],
                 location_data["userId"],
                 location_data["locationId"],
-                location_data["gatewayserial"],
             )
             for location_data in response.json()
         ]
@@ -238,7 +238,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.debug:
         logger.setLevel(logging.DEBUG)
-    password = getpass()
+
+    password = os.environ.get("HOMELY_PASS")
+    if password is None:
+        password = getpass()
 
     homely = Homely(args.username, password)
     locations = homely.get_locations()
