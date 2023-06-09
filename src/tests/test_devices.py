@@ -85,6 +85,73 @@ class TestDeviceCreation(TestCase):
             device.temperature.temperature_last_updated,
         )
 
+    def test_create_entry_sensor_2(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "alarm": {
+                            "value": False,
+                            "lastUpdated": "2023-06-06T17:44:38.401Z",
+                        },
+                        "tamper": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:41:31.157Z",
+                        },
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 26.4,
+                            "lastUpdated": "2023-06-09T18:22:11.817Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:41:31.082Z",
+                        },
+                        "defect": {"value": None, "lastUpdated": None},
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-06-09T14:42:13.160Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 75,
+                            "lastUpdated": "2023-06-09T17:54:51.847Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC0041003169",
+                            "lastUpdated": "2023-05-01T20:24:05.798Z",
+                        },
+                    }
+                },
+            },
+            "id": "3f37711f-cb83-4174-babe-7f492ee8de5a",
+            "name": "Alarm Entry Sensor 2",
+            "serialNumber": "0015BC004400810A",
+            "location": "Floor 2 - Loftgang",
+            "online": True,
+            "modelId": "9b765375-e3f4-4627-b73c-b4143ce86c2c",
+            "modelName": "Alarm Entry Sensor 2",
+        }
+
+        device: EntrySensor = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, EntrySensor))
+        self.assertEqual("Alarm Entry Sensor 2", device.name)
+        self.assertEqual(26.4, device.temperature.temperature)
+        self.assertEqual(
+            datetime.datetime(2023, 6, 9, 18, 22, 11, 817000, tzinfo=tzutc()),
+            device.temperature.temperature_last_updated,
+        )
+
     def test_create_smoke_alarm(self):
         rest_response = {
             "features": {
@@ -151,6 +218,74 @@ class TestDeviceCreation(TestCase):
         device: MotionSensorMini = create_device_from_rest_response(rest_response)
         self.assertTrue(isinstance(device, MotionSensorMini))
         self.assertEqual(89, device.diagnostic.network_link_strength)
+
+    def test_create_motion_sensor_2(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "alarm": {
+                            "value": False,
+                            "lastUpdated": "2023-06-09T18:21:11.541Z",
+                        },
+                        "tamper": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.908Z",
+                        },
+                        "sensitivitylevel": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-01T17:00:41.742Z",
+                        },
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 26.3,
+                            "lastUpdated": "2023-06-09T18:23:07.538Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.839Z",
+                        },
+                        "defect": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:00:41.857Z",
+                        },
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-11T05:01:05.016Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 94,
+                            "lastUpdated": "2023-06-09T17:37:39.567Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC002C100EBD",
+                            "lastUpdated": "2023-05-01T17:00:40.479Z",
+                        },
+                    }
+                },
+            },
+            "id": "51ecf8af-fc27-4d95-af14-295355e5f33d",
+            "name": "Alarm Motion Sensor 2",
+            "serialNumber": "0015BC001A1064CE",
+            "location": "Floor 1 - Living room",
+            "online": True,
+            "modelId": "17ddbcb4-8c00-4bc3-b06f-d20f51c0fe52",
+            "modelName": "Alarm Motion Sensor 2",
+        }
+        device: MotionSensor2 = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, MotionSensor2))
+        self.assertEqual(94, device.diagnostic.network_link_strength)
 
     def test_create_water_leak_sensor(self):
         rest_response = {
