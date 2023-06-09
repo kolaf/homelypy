@@ -18,6 +18,7 @@ from homelypy.states import (
     SmokeAlarmState,
     MotionSensorState,
     MeteringState,
+    WaterLeakDetectorState,
 )
 
 
@@ -149,6 +150,14 @@ class EMIHANPowersSensor(Device):
     metering: MeteringState
 
 
+@dataclass
+class WaterLeakDetector(Device):
+    temperature: TemperatureState
+    battery: BatteryState
+    diagnostic: DiagnosticState
+    alarm: WaterLeakDetectorState
+
+
 DEVICE_MAP = {
     "Motion Sensor Mini": MotionSensorMini,
     "Motion Sensor 2 Alarm": MotionSensorMini,
@@ -158,6 +167,7 @@ DEVICE_MAP = {
     "Window Sensor": WindowSensor,
     "Window Alarm Sensor": WindowSensor,
     "EMI Norwegian HAN": EMIHANPowersSensor,
+    "Water Leak Detector": WaterLeakDetector,
 }
 
 

@@ -43,6 +43,7 @@ class TestDeviceCreation(TestCase):
         }
         with self.assertRaises(UnknownDeviceException):
             device: WindowSensor = create_device_from_rest_response(rest_response)
+
     def test_create_window_sensor(self):
         rest_response = {
             "features": {
@@ -150,3 +151,59 @@ class TestDeviceCreation(TestCase):
         device: MotionSensorMini = create_device_from_rest_response(rest_response)
         self.assertTrue(isinstance(device, MotionSensorMini))
         self.assertEqual(89, device.diagnostic.network_link_strength)
+
+    def test_create_water_leak_sensor(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "flood": {
+                            "value": False,
+                            "lastUpdated": "2023-05-17T09:20:46.868Z",
+                        }
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 21.9,
+                            "lastUpdated": "2023-06-08T15:58:39.078Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-17T09:20:46.850Z",
+                        },
+                        "voltage": {
+                            "value": 3,
+                            "lastUpdated": "2023-05-17T10:36:16.891Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 92,
+                            "lastUpdated": "2023-06-08T16:08:58.577Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC004100389B",
+                            "lastUpdated": "2023-06-03T07:26:15.037Z",
+                        },
+                    }
+                },
+            },
+            "id": "1a03becf-be4d-4189-ac5f-eedff786e76a",
+            "name": "Water Leak Detector",
+            "serialNumber": "0015BC00330053A3",
+            "location": "Floor 1 - Kitchen",
+            "online": True,
+            "modelId": "22f7b47e-c40a-4943-b44a-c70f7ce820ff",
+            "modelName": "Water Leak Detector",
+        }
+        device: WaterLeakDetector = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, WaterLeakDetector))
+        self.assertEqual(92, device.diagnostic.network_link_strength)

@@ -58,6 +58,23 @@ class SmokeAlarmState(State):
 
 
 @dataclass
+class WaterLeakDetectorState(State):
+    @classmethod
+    def create_from_rest_response(cls, data: dict) -> "WaterLeakDetectorState":
+        my_data = data["features"]["alarm"]["states"]
+        return WaterLeakDetectorState(
+            "alarm",
+            *extract_value_and_last_updated(my_data["flood"]),
+        )
+
+    flood: bool
+    flood_last_updated: datetime.datetime
+
+    def __str__(self):
+        return f", Sensor state: {self.flood}"
+
+
+@dataclass
 class MotionSensorState(BasicAlarmState):
     sensitivity_level: Optional[float]
     sensitivity_level_last_updated: Optional[datetime.datetime]
