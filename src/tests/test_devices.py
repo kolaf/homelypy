@@ -182,6 +182,62 @@ class TestDeviceCreation(TestCase):
         self.assertTrue(isinstance(device, SmokeAlarm))
         self.assertFalse(device.alarm.fire)
 
+    def test_create_heat_alarm(self):
+        rest_response = {
+            "features": {
+                "alarm": {
+                    "states": {
+                        "fire": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:08:22.040Z",
+                        }
+                    }
+                },
+                "temperature": {
+                    "states": {
+                        "temperature": {
+                            "value": 24.3,
+                            "lastUpdated": "2023-06-09T18:50:59.100Z",
+                        }
+                    }
+                },
+                "battery": {
+                    "states": {
+                        "low": {
+                            "value": False,
+                            "lastUpdated": "2023-05-01T17:08:22.013Z",
+                        },
+                        "voltage": {
+                            "value": 2.9,
+                            "lastUpdated": "2023-06-09T18:57:42.482Z",
+                        },
+                    }
+                },
+                "diagnostic": {
+                    "states": {
+                        "networklinkstrength": {
+                            "value": 94,
+                            "lastUpdated": "2023-06-09T18:26:52.950Z",
+                        },
+                        "networklinkaddress": {
+                            "value": "0015BC004100389B",
+                            "lastUpdated": "2023-05-17T16:06:11.590Z",
+                        },
+                    }
+                },
+            },
+            "id": "170b3a89-3c98-45f1-a2ef-08ee0e11251a",
+            "name": "Intelligent Heat Alarm",
+            "serialNumber": "0015BC00340018F6",
+            "location": "Floor 1 - Kitchen",
+            "online": True,
+            "modelId": "ad923ba3-2b72-45e0-a9d7-91808a76f2ed",
+            "modelName": "Intelligent Heat Alarm",
+        }
+        device: HeatAlarm = create_device_from_rest_response(rest_response)
+        self.assertTrue(isinstance(device, HeatAlarm))
+        self.assertFalse(device.alarm.fire)
+
     def test_create_motion_sensor_mini(self):
         rest_response = {
             "features": {
