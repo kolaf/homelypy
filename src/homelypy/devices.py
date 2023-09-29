@@ -152,6 +152,7 @@ class EMIHANPowersSensor(Device):
 DEVICE_MAP = {
     "Motion Sensor Mini": MotionSensorMini,
     "Motion Sensor 2 Alarm": MotionSensorMini,
+    "Alarm Motion Sensor 2": MotionSensorMini,
     "Smoke Alarm": SmokeAlarm,
     "Intelligent Smoke Alarm": SmokeAlarm,
     "Heat Alarm": HeatAlarm,
